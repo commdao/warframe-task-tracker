@@ -36,6 +36,26 @@ const WarframeTaskTracker = () => {
     "Ceres", "Eris", "Sedna", "Europa", "Deimos", "Void", "Railjack", "Duviri"
   ];
 
+  const Tooltip = ({ children, content }) => {
+    const [show, setShow] = useState(false);
+
+    return (
+      <div className="relative inline-block">
+        <div
+          onMouseEnter={() => setShow(true)}
+          onMouseLeave={() => setShow(false)}
+        >
+          {children}
+        </div>
+        {show && (
+          <div className="absolute z-10 p-2 bg-gray-800 text-white text-sm rounded shadow-lg mt-1">
+            {content}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (locationInputRef.current && !locationInputRef.current.contains(event.target)) {
@@ -96,16 +116,16 @@ const WarframeTaskTracker = () => {
   };
 
   const toggleConstantTaskEdit = (id) => {
-    setConstantTasks(constantTasks.map(task => 
-      task.id === id ? { ...task, editing: !task.editing } : task
-    ));
+      setConstantTasks(constantTasks.map(task => 
+        task.id === id ? { ...task, editing: !task.editing } : task
+      ));
   };
 
-  const updateConstantTask = (id, newDescription) => {
-    setConstantTasks(constantTasks.map(task => 
-      task.id === id ? { ...task, description: newDescription, editing: false } : task
-    ));
-  };
+  // const updateConstantTask = (id, newDescription) => {
+  //   setConstantTasks(constantTasks.map(task => 
+  //     task.id === id ? { ...task, description: newDescription, editing: false } : task
+  //   ));
+  // };
 
   const TaskList = ({ title, filterFn }) => {
     const filteredTasks = tasks.filter(filterFn);
@@ -125,8 +145,19 @@ const WarframeTaskTracker = () => {
                 <input 
                   type="text" 
                   value={task.description}
-                  onChange={(e) => updateConstantTask(task.id, e.target.value)}
-                  onBlur={() => toggleConstantTaskEdit(task.id)}
+                  onChange={(e) => {
+                    const newDescription = e.target.value;
+                    setConstantTasks(constantTasks.map(t => 
+                      t.id === task.id ? { ...t, description: newDescription } : t
+                    ));
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      toggleConstantTaskEdit(task.id);
+                    }
+                  }}
+                  onBlur={(e) => toggleConstantTaskEdit(task.id)}
                   autoFocus
                   className="bg-gray-600 text-white p-1 rounded"
                 />
@@ -147,7 +178,19 @@ const WarframeTaskTracker = () => {
                 {task.interest === 'high' ? '★ ' : '☆ '}
                 {task.type}
               </span>
-              <span className="text-gray-200">{task.description}</span>
+              {task.type === 'Hunts' ? (
+                <Tooltip content={
+                  <div>
+                    <p>Weapon: {task.huntDetails.weapon}</p>
+                    <p>Stats: {task.huntDetails.stats}</p>
+                    <p>Ephemera: {task.huntDetails.hasEphemera ? 'Yes' : 'No'}</p>
+                  </div>
+                }>
+                  <span className="text-gray-200">{task.description}</span>
+                </Tooltip>
+              ) : (
+                <span className="text-gray-200">{task.description}</span>
+              )}
               {task.location && <span className="text-gray-400 text-sm italic"> ({task.location})</span>}
             </div>
             <button className="bg-red-500 hover:bg-red-600 text-white p-2 rounded" onClick={() => removeTask(task.id)}>
