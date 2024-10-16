@@ -231,6 +231,25 @@ const WarframeTaskTracker = () => {
             <option value="Items">Items</option>
             <option value="Hunts">Hunts</option>
           </select>
+          <div className="flex items-center space-x-4">
+            <label className="flex items-center space-x-2 text-sm">
+              <input
+                type="checkbox"
+                checked={newTask.timeSensitive}
+                onChange={(e) => setNewTask({...newTask, timeSensitive: e.target.checked})}
+                className="rounded bg-gray-700 text-white"
+              />
+              <span>Timed</span>
+            </label>
+            <select
+              value={newTask.interest}
+              onChange={(e) => setNewTask({...newTask, interest: e.target.value})}
+              className="p-1 rounded bg-gray-700 text-white text-sm"
+            >
+              <option value="high">High Interest</option>
+              <option value="low">Low Interest</option>
+            </select>
+          </div>
           <div className="relative" ref={locationInputRef}>
             <input
               type="text"
@@ -254,42 +273,9 @@ const WarframeTaskTracker = () => {
               </ul>
             )}
           </div>
-          <div className="flex items-center space-x-4">
-            <label className="flex items-center space-x-2 text-sm">
-              <input
-                type="checkbox"
-                checked={newTask.timeSensitive}
-                onChange={(e) => setNewTask({...newTask, timeSensitive: e.target.checked})}
-                className="rounded bg-gray-700 text-white"
-              />
-              <span>Timed</span>
-            </label>
-            <select
-              value={newTask.interest}
-              onChange={(e) => setNewTask({...newTask, interest: e.target.value})}
-              className="p-1 rounded bg-gray-700 text-white text-sm"
-            >
-              <option value="high">High Interest</option>
-              <option value="low">Low Interest</option>
-            </select>
-          </div>
         </div>
         {newTask.type === 'Hunts' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-            <input
-              type="text"
-              placeholder="Weapon type"
-              value={newTask.huntDetails.weapon}
-              onChange={(e) => setNewTask({...newTask, huntDetails: {...newTask.huntDetails, weapon: e.target.value}})}
-              className="p-2 rounded bg-gray-700 text-white"
-            />
-            <input
-              type="text"
-              placeholder="Weapon stats"
-              value={newTask.huntDetails.stats}
-              onChange={(e) => setNewTask({...newTask, huntDetails: {...newTask.huntDetails, stats: e.target.value}})}
-              className="p-2 rounded bg-gray-700 text-white"
-            />
+          <div className="flex items-center space-x-4 mt-4">
             <div className="flex items-center space-x-2">
               <input
                 type="checkbox"
@@ -302,6 +288,20 @@ const WarframeTaskTracker = () => {
                 Has Ephemera
               </label>
             </div>
+            <input
+              type="text"
+              placeholder="Weapon type"
+              value={newTask.huntDetails.weapon}
+              onChange={(e) => setNewTask({...newTask, huntDetails: {...newTask.huntDetails, weapon: e.target.value}})}
+              className="p-2 rounded bg-gray-700 text-white w-full md:w-1/3" // Adjust width as necessary
+            />
+            <input
+              type="text"
+              placeholder="Weapon stats"
+              value={newTask.huntDetails.stats}
+              onChange={(e) => setNewTask({...newTask, huntDetails: {...newTask.huntDetails, stats: e.target.value}})}
+              className="p-2 rounded bg-gray-700 text-white w-full md:w-1/3" // Adjust width as necessary
+            />
           </div>
         )}
         <button className="mt-4 bg-blue-500 hover:bg-blue-600 text-white p-2 rounded flex items-center" onClick={addTask}>
