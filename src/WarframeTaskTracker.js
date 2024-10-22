@@ -116,16 +116,10 @@ const WarframeTaskTracker = () => {
   };
 
   const toggleConstantTaskEdit = (id) => {
-      setConstantTasks(constantTasks.map(task => 
-        task.id === id ? { ...task, editing: !task.editing } : task
-      ));
+    setConstantTasks(constantTasks.map(task => 
+      task.id === id ? { ...task, editing: !task.editing } : task
+    ));
   };
-
-  // const updateConstantTask = (id, newDescription) => {
-  //   setConstantTasks(constantTasks.map(task => 
-  //     task.id === id ? { ...task, description: newDescription, editing: false } : task
-  //   ));
-  // };
 
   const TaskList = ({ title, filterFn }) => {
     const filteredTasks = tasks.filter(filterFn);
@@ -202,11 +196,55 @@ const WarframeTaskTracker = () => {
     );
   };
 
+  const downloadTasks = () => {
+    const tasksData = JSON.stringify({ tasks, constantTasks });
+    const blob = new Blob([tasksData], { type: 'application/json' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'warframe-tasks.json';
+    link.click();
+  };
+
+  const uploadTasks = (event) => {
+    const file = event.target.files[0];
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const savedData = JSON.parse(e.target.result);
+      if (savedData.tasks) {
+        setTasks(savedData.tasks);
+        localStorage.setItem('tasks', JSON.stringify(savedData.tasks));
+      }
+      if (savedData.constantTasks) {
+        setConstantTasks(savedData.constantTasks);
+        localStorage.setItem('constantTasks', JSON.stringify(savedData.constantTasks));
+      }
+    };
+    reader.readAsText(file);
+  };
+
   return (
     <div className="warframe-tracker max-w-4xl mx-auto p-6 bg-gray-800 text-gray-200">
       <h1 className="text-3xl font-bold mb-8">Warframe Task Tracker</h1>
-      
-      <div className="task-lists flex flex-col md:flex-row justify-between gap-8">
+
+      {/* Explanation for the backup/restore functionality */}
+      <p className="mb-4 text-gray-400">
+        Note: It's recommended to download a backup of your tasks while a more stable task tracker is being built.
+      </p>
+
+      {/* Backup/Restore buttons */}
+      <div className="mt-4 flex space-x-4">
+        <button onClick={downloadTasks} className="bg-green-500 hover:bg-green-600 text-white p-2 rounded">
+          Download Tasks
+        </button>
+        <input 
+          type="file"
+          onChange={uploadTasks}
+          accept=".json"
+          className="bg-blue-500 text-white p-2 rounded"
+        />
+      </div>
+
+      <div className="task-lists flex flex-col md:flex-row justify-between gap-8 mt-8">
         <TaskList title="Time Sensitive Tasks" filterFn={task => task.timeSensitive} />
         <TaskList title="Non-Time Sensitive Tasks" filterFn={task => !task.timeSensitive} />
       </div>
@@ -293,14 +331,14 @@ const WarframeTaskTracker = () => {
               placeholder="Weapon type"
               value={newTask.huntDetails.weapon}
               onChange={(e) => setNewTask({...newTask, huntDetails: {...newTask.huntDetails, weapon: e.target.value}})}
-              className="p-2 rounded bg-gray-700 text-white w-full md:w-1/3" // Adjust width as necessary
+              className="p-2 rounded bg-gray-700 text-white w-full md:w-1/3"
             />
             <input
               type="text"
               placeholder="Weapon stats"
               value={newTask.huntDetails.stats}
               onChange={(e) => setNewTask({...newTask, huntDetails: {...newTask.huntDetails, stats: e.target.value}})}
-              className="p-2 rounded bg-gray-700 text-white w-full md:w-1/3" // Adjust width as necessary
+              className="p-2 rounded bg-gray-700 text-white w-full md:w-1/3"
             />
           </div>
         )}
