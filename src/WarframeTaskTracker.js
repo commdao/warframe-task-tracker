@@ -236,12 +236,17 @@ const WarframeTaskTracker = () => {
         <button onClick={downloadTasks} className="bg-green-500 hover:bg-green-600 text-white p-2 rounded">
           Download Tasks
         </button>
-        <input 
-          type="file"
-          onChange={uploadTasks}
-          accept=".json"
-          className="bg-blue-500 text-white p-2 rounded"
-        />
+
+        {/* Custom file input */ }
+        <label className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded cursor-pointer">
+          Upload File
+          <input 
+            type="file"
+            onChange={uploadTasks}
+            accept=".json"
+            className="hidden"
+          />
+        </label>
       </div>
 
       <div className="task-lists flex flex-col md:flex-row justify-between gap-8 mt-8">
