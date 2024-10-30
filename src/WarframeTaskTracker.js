@@ -1,5 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { PlusCircle, Trash2, Edit2 } from 'lucide-react';
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend'
+import { TouchBackend } from 'react-dnd-touch-backend'
+import { isMobile } from 'react-device-detect'
+
+const getBackend = () => {
+  return isMobile? TouchBackend : HTML5Backend;
+};
 
 const WarframeTaskTracker = () => {
   const [tasks, setTasks] = useState(() => {
@@ -10,6 +18,24 @@ const WarframeTaskTracker = () => {
       { id: 3, description: 'Add Somachord Pop Songs', timeSensitive: false, interest: 'high', location: 'Various', type: 'Items' },
     ];
   });
+
+  const onDragEnd = (result) => {
+    if (!result.destination) return;
+
+    const sourceId = result.source.droppableId;
+    const destId = result.destination.droppableId;
+  
+    const newTasks = Array.from(tasks);
+    const [reorderedItem] = newTasks.splice(result.source.index, 1);
+    newTasks.splice(result.destination.index, 0, reorderedItem);
+  
+    // Update the timeSensitive property if moving between lists
+    if (sourceId !== destId) {
+      reorderedItem.timeSensitive = destId === "Time Sensitive Tasks";
+    }
+  
+    setTasks(newTasks);
+  };
 
   const [constantTasks, setConstantTasks] = useState(() => {
     const storedConstantTasks = localStorage.getItem('constantTasks');
@@ -127,7 +153,13 @@ const WarframeTaskTracker = () => {
     const isTimeSensitive = title === "Time Sensitive Tasks";
 
     return (
-      <div className="task-list w-full min-w-full">
+      <Droppable droppableId={title}>
+        {(provided) => (
+          <div 
+            className="task-list w-full min-w-full"
+            ref={provided.innerRef}
+            {...provided.droppableProps}
+          >
         <h2 className="text-xl font-bold mb-4">{title}</h2>
         {isTimeSensitive && constantTasks.map(task => (
           <div key={task.id} className="task bg-gray-700 p-4 mb-4 rounded-lg flex justify-between items-center">
@@ -165,8 +197,19 @@ const WarframeTaskTracker = () => {
             </button>
           </div>
         ))}
-        {sortedTasks.map(task => (
-          <div key={task.id} className="task bg-gray-700 p-4 mb-4 rounded-lg flex justify-between items-center">
+        {sortedTasks.map((task, index) => (
+          <Draggable key={task.id} draggableId={task.id.toString()} index={index}>
+            {(provided) => (
+              <div
+                ref={provided.innerRef}
+                {...provided.draggableProps}
+                {...provided.dragHandleProps}
+                style={{
+                  ...provided.draggableProps.style,
+                  touchAction: 'none'
+                }}
+                className="task bg-gray-700 p-4 mb-4 rounded-lg flex justify-between items-center"
+              >     
             <div className="flex flex-col">
               <span className={`${task.interest === 'high' ? 'text-yellow-300' : 'text-gray-400'} text-sm`}>
                 {task.interest === 'high' ? '★ ' : '☆ '}
@@ -190,9 +233,14 @@ const WarframeTaskTracker = () => {
             <button className="bg-red-500 hover:bg-red-600 text-white p-2 rounded" onClick={() => removeTask(task.id)}>
               <Trash2 size={16} />
             </button>
-          </div>
+            </div>
+            )}     
+          </Draggable>
         ))}
+        {provided.placeholder}
       </div>
+      )}
+    </Droppable>
     );
   };
 
@@ -223,6 +271,7 @@ const WarframeTaskTracker = () => {
   };
 
   return (
+    <DragDropContext onDragEnd={onDragEnd}>
     <div className="warframe-tracker max-w-4xl mx-auto p-6 bg-gray-800 text-gray-200">
       <h1 className="text-3xl font-bold mb-8">Warframe Task Tracker</h1>
 
@@ -250,8 +299,12 @@ const WarframeTaskTracker = () => {
       </div>
 
       <div className="task-lists w-full min-w-full flex flex-col gap-8 mt-8">
-        <TaskList title="Time Sensitive Tasks" filterFn={task => task.timeSensitive} />
-        <TaskList title="Non-Time Sensitive Tasks" filterFn={task => !task.timeSensitive} />
+        <div className="w-full">
+          <TaskList title="Time Sensitive Tasks" filterFn={task => task.timeSensitive} />
+        </div>
+        <div className="w-full">
+          <TaskList title="Non-Time Sensitive Tasks" filterFn={task => !task.timeSensitive} />
+        </div>
       </div>
 
       <div className="add-task mt-8">
@@ -352,6 +405,7 @@ const WarframeTaskTracker = () => {
         </button>
       </div>
     </div>
+    </DragDropContext>
   );
 };
 

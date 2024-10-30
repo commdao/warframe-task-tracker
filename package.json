@@ -8,6 +8,10 @@
     "@testing-library/user-event": "^13.5.0",
     "lucide-react": "^0.451.0",
     "react": "^18.3.1",
+    "react-beautiful-dnd": "^13.1.1",
+    "react-device-detect": "^2.2.3",
+    "react-dnd-html5-backend": "^16.0.1",
+    "react-dnd-touch-backend": "^16.0.1",
     "react-dom": "^18.3.1",
     "react-scripts": "5.0.1",
     "web-vitals": "^2.1.4"
