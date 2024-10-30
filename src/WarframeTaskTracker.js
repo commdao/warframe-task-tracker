@@ -127,7 +127,7 @@ const WarframeTaskTracker = () => {
     const isTimeSensitive = title === "Time Sensitive Tasks";
 
     return (
-      <div className="task-list w-full md:w-[48%]">
+      <div className="task-list w-full min-w-full">
         <h2 className="text-xl font-bold mb-4">{title}</h2>
         {isTimeSensitive && constantTasks.map(task => (
           <div key={task.id} className="task bg-gray-700 p-4 mb-4 rounded-lg flex justify-between items-center">
@@ -249,7 +249,7 @@ const WarframeTaskTracker = () => {
         </label>
       </div>
 
-      <div className="task-lists flex flex-col md:flex-row justify-between gap-8 mt-8">
+      <div className="task-lists w-full min-w-full flex flex-col gap-8 mt-8">
         <TaskList title="Time Sensitive Tasks" filterFn={task => task.timeSensitive} />
         <TaskList title="Non-Time Sensitive Tasks" filterFn={task => !task.timeSensitive} />
       </div>
