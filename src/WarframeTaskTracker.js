@@ -1,13 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { PlusCircle, Trash2, Edit2 } from 'lucide-react';
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend'
-import { TouchBackend } from 'react-dnd-touch-backend'
-import { isMobile } from 'react-device-detect'
-
-const getBackend = () => {
-  return isMobile? TouchBackend : HTML5Backend;
-};
+import { PlusCircle, X, SquarePen } from 'lucide-react';
 
 const WarframeTaskTracker = () => {
   const [tasks, setTasks] = useState(() => {
@@ -19,29 +11,130 @@ const WarframeTaskTracker = () => {
     ];
   });
 
-  const onDragEnd = (result) => {
-    if (!result.destination) return;
-
-    const sourceId = result.source.droppableId;
-    const destId = result.destination.droppableId;
-  
-    const newTasks = Array.from(tasks);
-    const [reorderedItem] = newTasks.splice(result.source.index, 1);
-    newTasks.splice(result.destination.index, 0, reorderedItem);
-  
-    // Update the timeSensitive property if moving between lists
-    if (sourceId !== destId) {
-      reorderedItem.timeSensitive = destId === "Time Sensitive Tasks";
+  const handleDragStart = (e, taskId, index) => {
+    try{
+      //e.preventDefault();
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('application/json', JSON.stringify({
+        taskId: taskId.toString(),
+        sourceIndex: index.toString()
+      }));
+      e.currentTarget.classList.add('opacity-50');
+    } catch (error) {
+      console.error('Drag start error:', error);
     }
+  };
+
+  const handleDragEnd = (e) => {
+    try {
+      e.preventDefault();
+      e.currentTarget.classList.remove('opacity-50');
+
+      document.querySelectorAll('.task').forEach(task => {
+        task.classList.remove('border-t-4', 'border-b-4');
+      });
+    } catch (error) {
+      console.error('Drag end error:', error);
+    }
+  };
+
+  const handleDragOver = (e) => {
+    try {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const dropzone = e.currentTarget;
+      dropzone.classList.add('bg-gray-600');
+      const taskElement = e.target.closest('.task');
+
+      if (taskElement) {
+        const rect = taskElement.getBoundingClientRect();
+        const midPoint = rect.top + rect.height / 2;
   
-    setTasks(newTasks);
+        document.querySelectorAll('.task').forEach(task => {
+          taskElement.classList.remove('border-t-4', 'border-b-4');
+        });
+  
+        if (e.clientY < midPoint) {
+          taskElement.classList.add('border-t-4');
+        } else {
+          taskElement.classList.add('border-b-4');
+        }
+      }
+    } catch (error) {
+      console.error('Drag over error:', error);
+    }
+  };
+
+  const handleDragLeave = (e) => {
+    try {
+      e.preventDefault();
+      e.stopPropagation();
+      const dropzone = e.currentTarget;
+      dropzone.classList.remove('bg-gray-600');
+
+      const taskElement = e.target.closest('.task');
+      if (taskElement) {
+        taskElement.classList.remove('border-t-4', 'border-b-4');
+      }
+    } catch (error) {
+      console.error('Drag leave error:', error);
+    }
+  };
+
+  const handleDrop = (e, isTimeSensitive, targetIndex) => {
+    try {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const dropzone = e.currentTarget;
+      dropzone.classList.remove('bg-gray-600');
+
+      document.querySelectorAll('.task').forEach(task => {
+        task.classList.remove('border-t-4', 'border-b-4');
+      });
+
+      const data = JSON.parse(e.dataTransfer.getData('application/json'));
+      const taskId = parseInt(data.taskId);
+      const sourceIndex = parseInt(data.sourceIndex);
+      
+      if (isNaN(taskId) || isNaN(sourceIndex)) {
+        console.error('Invalid drag data');
+        return;
+      }
+      
+      const taskElement = e.target.closest('.task');
+      const newTasks = [...tasks];
+      const [movedTask] = newTasks.splice(sourceIndex, 1);
+
+      if (!movedTask) {
+        console.error('Task not found');
+        return;
+      }
+
+      if (movedTask.timeSensitive !== isTimeSensitive) {
+        movedTask.timeSensitive = isTimeSensitive;
+      }
+      let insertIndex = targetIndex;
+        if (taskElement) {
+          const rect = taskElement.getBoundingClientRect();
+          const midPoint = rect.top + rect.height / 2;
+          if (e.clientY > midPoint) {
+            insertIndex++;
+          }
+        }
+        newTasks.splice(insertIndex, 0, movedTask);
+        setTasks(newTasks);
+    } catch (error) {
+      console.error('Drop error:', error);
+    }    
   };
 
   const [constantTasks, setConstantTasks] = useState(() => {
     const storedConstantTasks = localStorage.getItem('constantTasks');
     return storedConstantTasks ? JSON.parse(storedConstantTasks) : [
       { id: 'incarnon-weapon', description: 'Incarnon (Weapon)', timeSensitive: true, interest: 'high', location: 'Duviri', type: 'Incarnon Upgrade', editing: false },
-      { id: 'incarnon-warframe', description: 'Incarnon (Warframe)', timeSensitive: true, interest: 'high', location: 'Duviri', type: 'Base Frame', editing: false },
+      { id: 'base-warframe', description: '(Warframe)', timeSensitive: true, interest: 'high', location: 'Duviri', type: 'Base Frame', editing: false },
     ];
   });
 
@@ -153,12 +246,11 @@ const WarframeTaskTracker = () => {
     const isTimeSensitive = title === "Time Sensitive Tasks";
 
     return (
-      <Droppable droppableId={title}>
-        {(provided) => (
           <div 
             className="task-list w-full min-w-full"
-            ref={provided.innerRef}
-            {...provided.droppableProps}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={(e) => handleDrop(e, isTimeSensitive, 0)}
           >
         <h2 className="text-xl font-bold mb-4">{title}</h2>
         {isTimeSensitive && constantTasks.map(task => (
@@ -193,21 +285,16 @@ const WarframeTaskTracker = () => {
               <span className="text-gray-400 text-sm italic">{task.location}</span>
             </div>
             <button className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded" onClick={() => toggleConstantTaskEdit(task.id)}>
-              <Edit2 size={16} />
+              <SquarePen size={16} />
             </button>
           </div>
         ))}
         {sortedTasks.map((task, index) => (
-          <Draggable key={task.id} draggableId={task.id.toString()} index={index}>
-            {(provided) => (
               <div
-                ref={provided.innerRef}
-                {...provided.draggableProps}
-                {...provided.dragHandleProps}
-                style={{
-                  ...provided.draggableProps.style,
-                  touchAction: 'none'
-                }}
+                key={task.id}
+                draggable="true"
+                onDragStart={(e) => handleDragStart(e, task.id, index)}
+                onDragEnd={handleDragEnd}
                 className="task bg-gray-700 p-4 mb-4 rounded-lg flex justify-between items-center"
               >     
             <div className="flex flex-col">
@@ -231,16 +318,11 @@ const WarframeTaskTracker = () => {
               {task.location && <span className="text-gray-400 text-sm italic"> ({task.location})</span>}
             </div>
             <button className="bg-red-500 hover:bg-red-600 text-white p-2 rounded" onClick={() => removeTask(task.id)}>
-              <Trash2 size={16} />
+              <X size={16} />
             </button>
             </div>
-            )}     
-          </Draggable>
         ))}
-        {provided.placeholder}
       </div>
-      )}
-    </Droppable>
     );
   };
 
@@ -271,7 +353,6 @@ const WarframeTaskTracker = () => {
   };
 
   return (
-    <DragDropContext onDragEnd={onDragEnd}>
     <div className="warframe-tracker max-w-4xl mx-auto p-6 bg-gray-800 text-gray-200">
       <h1 className="text-3xl font-bold mb-8">Warframe Task Tracker</h1>
 
@@ -405,7 +486,6 @@ const WarframeTaskTracker = () => {
         </button>
       </div>
     </div>
-    </DragDropContext>
   );
 };
 

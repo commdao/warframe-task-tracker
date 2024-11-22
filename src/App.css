@@ -4,7 +4,7 @@
 
 body {
   font-family: Arial, sans-serif;
-  background-color: #1a1a2e;
+  background-color: #1b1d1e;
   color: #e0e0e0;
   margin: 0;
   padding: 20px;
@@ -25,13 +25,29 @@ body {
 }
 
 .task {
-  background-color: #16213e;
+  background-color: #77708b;
   padding: 10px;
   margin-bottom: 10px;
   border-radius: 5px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.bg-gray-800 {
+  background-color: #17161b;
+}
+
+.bg-blue-500 {
+  background-color: #63c1aa;
+}
+
+.bg-red-500 {
+  background-color: #955a64;
+}
+
+.bg-green-500 {
+  background-color: #416859;
 }
 
 .high-interest {
@@ -44,7 +60,7 @@ body {
 
 .location {
   font-style: italic;
-  color: #0f3460;
+  color: #4e4951;
 }
 
 .add-task input, .add-task select, .add-task button {
@@ -55,7 +71,7 @@ body {
 }
 
 button {
-  background-color: #e94560;
+  background-color: #7f868b;
   color: white;
   border: none;
   padding: 5px 10px;
@@ -67,5 +83,5 @@ button {
 }
 
 button:hover {
-  background-color: #b83b5e;
+  background-color: #4e4951;
 }
