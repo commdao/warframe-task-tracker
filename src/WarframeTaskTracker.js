@@ -90,9 +90,9 @@ const WarframeTaskTracker = () => {
       const dropzone = e.currentTarget;
       dropzone.classList.remove('bg-gray-600');
 
-      document.querySelectorAll('.task').forEach(task => {
-        task.classList.remove('border-t-4', 'border-b-4');
-      });
+      // document.querySelectorAll('.task').forEach(task => {
+      //   task.classList.remove('border-t-4', 'border-b-4');
+      // });
 
       const data = JSON.parse(e.dataTransfer.getData('application/json'));
       const taskId = parseInt(data.taskId);
@@ -144,7 +144,9 @@ const WarframeTaskTracker = () => {
     interest: 'low', 
     location: '', 
     type: 'Prime Parts',
-    huntDetails: { weapon: '', stats: '', hasEphemera: false }
+    huntDetails: { weapon: '', stats: '', hasEphemera: false },
+    buildDetails: { frame: '', abilities: [], notes: '' },
+    customizationDetails: { item: '', palette: '', notes: '' }
   });
 
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
@@ -407,6 +409,9 @@ const WarframeTaskTracker = () => {
             <option value="Mods">Mods</option>
             <option value="Items">Items</option>
             <option value="Hunts">Hunts</option>
+            <option value="Build Ideas">Build Ideas</option>
+            <option value="Customization">Customization</option>
+            <option value="General Note">General Note</option>
           </select>
           <div className="flex items-center space-x-4">
             <label className="flex items-center space-x-2 text-sm">
@@ -427,6 +432,8 @@ const WarframeTaskTracker = () => {
               <option value="low">Low Interest</option>
             </select>
           </div>
+
+          {newTask.type !== 'General Note' && (
           <div className="relative" ref={locationInputRef}>
             <input
               type="text"
@@ -450,6 +457,7 @@ const WarframeTaskTracker = () => {
               </ul>
             )}
           </div>
+          )}
         </div>
         {newTask.type === 'Hunts' && (
           <div className="flex items-center space-x-4 mt-4">
